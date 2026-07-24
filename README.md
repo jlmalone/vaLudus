@@ -1,5 +1,7 @@
 # vaLudus
 
+> Build the Lab, Not the Cathedral
+
 vaLudus is an open laboratory for rigorous evaluation of intelligences. It develops an inspectable pipeline for designing, running, challenging, and reporting benchmarks across systems and domains.
 
 ## Abstract
@@ -98,4 +100,4 @@ See [the pipeline architecture](docs/PIPELINE.md) for the adapter contract, arti
 
 The repository is intentionally small at inception. Its first milestone is a stable, domain-neutral artifact contract. Future adapters can support different kinds of intelligence and task environments without weakening the common evidence standard.
 
-See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md) and [contribution guide](CONTRIBUTING.md).
+See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md), [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md).
