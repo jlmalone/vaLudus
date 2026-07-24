@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "id": "structured-reasoning-smoke",
+  "version": "0.1.0",
+  "task_family": "structured reasoning",
+  "capability_claim": "The system can produce valid answers for a bounded set of structured problems under a declared budget.",
+  "input_provenance": "Synthetic fixtures generated from a documented grammar.",
+  "metrics": [{"name": "valid_answer_rate", "direction": "higher_is_better", "unit": "fraction"}],
+  "success_threshold": "valid_answer_rate >= 0.90 on the held-out partition",
+  "failure_cases": ["Malformed answer is emitted.", "Declared resource budget is exceeded."],
+  "robustness_checks": ["Equivalent input serializations."],
+  "anti_gaming_checks": ["Held-out fixtures use unseen parameter combinations."],
+  "contamination": {"risk_level": "low", "mitigations": ["Synthetic held-out fixtures are generated after system configuration is frozen."], "residual_risk": "A system may have seen similar public task patterns."},
+  "budget": {"tokens": "Record all input and output tokens when applicable.", "money_usd": "Report provider or infrastructure cost in USD.", "wall_time_seconds": "60 seconds per fixture.", "compute": "Record processor or accelerator model and count.", "memory_mb": "1024 MB peak resident memory."}
+}

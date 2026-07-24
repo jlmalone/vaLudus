@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jlmalone/vaLudus/schemas/benchmark-manifest.schema.json",
+  "title": "vaLudus Benchmark Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "version", "task_family", "capability_claim", "metrics", "success_threshold", "failure_cases", "contamination", "budget"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "version": {"type": "string", "minLength": 1},
+    "task_family": {"type": "string", "minLength": 1},
+    "capability_claim": {"type": "string", "minLength": 1},
+    "input_provenance": {"type": "string"},
+    "metrics": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["name", "direction", "unit"], "properties": {"name": {"type": "string"}, "direction": {"enum": ["higher_is_better", "lower_is_better", "target_is_better"]}, "unit": {"type": "string"}}}},
+    "success_threshold": {"type": "string", "minLength": 1},
+    "failure_cases": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "robustness_checks": {"type": "array", "items": {"type": "string"}},
+    "anti_gaming_checks": {"type": "array", "items": {"type": "string"}},
+    "contamination": {"type": "object", "additionalProperties": false, "required": ["risk_level", "mitigations", "residual_risk"], "properties": {"risk_level": {"enum": ["low", "medium", "high", "unknown"]}, "mitigations": {"type": "array", "items": {"type": "string"}}, "residual_risk": {"type": "string", "minLength": 1}}},
+    "budget": {"type": "object", "additionalProperties": false, "required": ["tokens", "money_usd", "wall_time_seconds", "compute", "memory_mb"], "properties": {"tokens": {"type": "string"}, "money_usd": {"type": "string"}, "wall_time_seconds": {"type": "string"}, "compute": {"type": "string"}, "memory_mb": {"type": "string"}}}
+  }
+}
