@@ -15,5 +15,12 @@
       "sha256": "7d547b400452e4d56ab90ed0743767949550256286b17cc76e14bf00494eaa87"
     }
   ],
-  "status": "design-only: no generated fixture or comparative result exists yet"
+  "engine_baseline": {
+    "name": "Fairy-Stockfish 170726 LB",
+    "source_commit": "7f9d1e94dd8c2a689b0b140662a5efb5b17e17de",
+    "binary_sha256": "23a78218208e5ca0d22e9df04b426387efdf81508f26e00141d942acade43121",
+    "uci_variant": "capahouse",
+    "scope": "single-board Turnabout analysis; Siamese requires two instances and Gambit coordination"
+  },
+  "status": "infrastructure-only: no generated fixture or comparative result exists yet"
 }

@@ -27,3 +27,23 @@ Gambit rules revision, never a public match or user history.
 
 The rules and coordination gates are necessary preconditions, not proof that a candidate plays
 Capablanca well. Only the play gate can support a bounded game-playing claim.
+
+## Local engine baseline
+
+The baseline is a trusted local Fairy-Stockfish executable speaking UCI, with `UCI_Variant` set to
+`capahouse` for single-board Turnabout positions. The harness must send every pinned Gambit FEN
+explicitly: Fairy-Stockfish's built-in Capahouse start position is not Gambit's canonical back rank.
+For Capablanca Siamese, run two Capahouse instances and let Gambit's reference coordinator apply
+the ordered cross-board capture transfers and turn rotation.
+
+`valudus probe-engine` is a zero-cost preflight. It records a best move and the latest UCI principal
+variation, centipawn or mate score, depth, nodes, nodes per second, and elapsed time. It is not yet
+the match runner and never calls a hosted model.
+
+```sh
+PYTHONPATH=src python3 -m valudus probe-engine \
+  --engine /path/to/fairy-stockfish \
+  --variant capahouse \
+  --fen 'rnbaqkcbnr/pppppppppp/10/10/10/10/PPPPPPPPPP/RNBAQKCBNR[] w KQkq - 0 1' \
+  --depth 1
+```

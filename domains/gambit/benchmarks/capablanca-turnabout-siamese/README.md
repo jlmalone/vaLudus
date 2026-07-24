@@ -28,6 +28,12 @@ design anchor, not a release claim or a substitute for fixture provenance.
 | Prompt variation | Mean and range across controlled system and user prompt variants |
 | Invalid-run rate | Fraction with missing evidence, malformed actions, or unobserved required cost |
 
+Record Fairy-Stockfish's principal variation, score (centipawn or mate), depth, nodes, and elapsed
+analysis time at each declared checkpoint. UCI centipawns are from the side to move, so reports
+must also state the normalized point of view. Material evidence has two distinct measurements:
+on-board material balance and an append-only capture ledger. A reserve drop changes the former but
+must never erase the latter.
+
 ## First fixtures
 
 1. A Turnabout position where the only legal reply is a reserve drop.

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from .runner import RunnerError, run_benchmark
+from .uci import UciEngine, UciEngineError
 from .validation import validate_artifact
 
 def main() -> int:
@@ -27,6 +29,14 @@ def main() -> int:
         default="procedural",
         help="Claim only the strongest tier supported by the captured conditions.",
     )
+    engine_probe = subcommands.add_parser(
+        "probe-engine", help="Run one bounded, zero-cost UCI analysis against a trusted local engine."
+    )
+    engine_probe.add_argument("--engine", required=True, type=Path)
+    engine_probe.add_argument("--variant", required=True)
+    engine_probe.add_argument("--fen", required=True)
+    engine_probe.add_argument("--depth", required=True, type=int)
+    engine_probe.add_argument("--timeout-seconds", default=10.0, type=float)
     args = parser.parse_args()
     if args.command == "run":
         try:
@@ -39,6 +49,16 @@ def main() -> int:
             return 2
         print(f"{report['status'].upper()}: {args.output / 'run-report.json'}")
         return 0 if report["status"] == "valid" else 1
+
+    if args.command == "probe-engine":
+        try:
+            with UciEngine(args.engine, args.timeout_seconds) as engine:
+                analysis = engine.analyse(args.fen, args.variant, args.depth)
+        except UciEngineError as error:
+            print(f"ENGINE PROBE FAILED: {error}")
+            return 2
+        print(json.dumps(analysis.as_dict(), indent=2, sort_keys=True))
+        return 0
 
     artifact_type = "benchmark" if args.command == "validate-benchmark" else "run"
     errors = validate_artifact(args.artifact, artifact_type)
