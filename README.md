@@ -104,3 +104,25 @@ The repository is intentionally small at inception. Its first milestone is a sta
 See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md), [domain layout](domains/README.md),
 [prompt-conditioned evaluation protocol](docs/PROMPT_CONDITIONED_EVALUATION.md),
 [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md).
+
+## Synthetic governance harness
+
+The first governance domain tests a bounded, synthetic charter-conformance claim. It uses an
+inspectable deterministic oracle: explicit prohibitions reject, while missing authority, evidence,
+approval, or conflict mitigation escalates. It is not a real-world governance, legal, or policy
+decision system.
+
+Generate a fresh fixture suite after candidate configuration is frozen:
+
+```sh
+gradle run --args="generate --output /secure/governance-held-out-240.json --cases 240 --seed 8128"
+```
+
+Run the Kotlin reference pipeline to validate generated expected results and preserve its evidence:
+
+```sh
+gradle run --args="run-reference --manifest /secure/governance-held-out-240.json --output /tmp/governance-reference-run"
+```
+
+Candidate adapters and isolated execution are the next integration layer. See the
+[governance domain](domains/governance/README.md) for the protocol and boundaries.

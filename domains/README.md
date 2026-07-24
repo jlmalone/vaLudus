@@ -12,6 +12,6 @@ vaLudus itself owns the shared artifact schema, validation, result comparability
 reference runner. A domain may add a task-specific scorer or simulator, but may not weaken the
 evidence, budget, contamination, or invalid-run requirements.
 
-The first placeholders are [Gambit](gambit/README.md), [Mindustry](mindustry/README.md),
-[LunLunZhongWen](lunlunzhongwen/README.md), and the future
-[Galactica society simulator](galactica-society/README.md).
+The first domains are [Gambit](gambit/README.md), [Mindustry](mindustry/README.md),
+[LunLunZhongWen](lunlunzhongwen/README.md), [synthetic governance](governance/README.md),
+and the future [Galactica society simulator](galactica-society/README.md).
