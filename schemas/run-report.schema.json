@@ -1,21 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/jlmalone/vaLudus/schemas/run-report.schema.json",
+  "$id": "urn:valudus:schema:run-report:1.1",
   "title": "vaLudus Run Report",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "run_id", "benchmark", "system", "reproducibility_tier", "environment", "resources", "metrics", "evidence", "status"],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.1"},
     "run_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
     "benchmark": {"type": "object", "additionalProperties": false, "required": ["id", "version"], "properties": {"id": {"type": "string"}, "version": {"type": "string"}}},
     "system": {"type": "object", "additionalProperties": false, "required": ["name", "version", "configuration"], "properties": {"name": {"type": "string"}, "version": {"type": "string"}, "configuration": {"type": "string"}}},
     "reproducibility_tier": {"enum": ["exact", "procedural", "exploratory"]},
-    "environment": {"type": "object", "additionalProperties": false, "required": ["platform", "seed"], "properties": {"platform": {"type": "string"}, "seed": {"type": ["string", "integer", "null"]}}},
+    "environment": {"type": "object", "additionalProperties": false, "required": ["platform", "python", "seed"], "properties": {"platform": {"type": "string"}, "python": {"type": "string"}, "seed": {"type": ["string", "integer", "null"]}}},
     "resources": {"type": "object", "additionalProperties": false, "required": ["tokens", "money_usd", "wall_time_seconds", "compute", "memory_mb"], "properties": {"tokens": {"type": ["number", "null"], "minimum": 0}, "money_usd": {"type": ["number", "null"], "minimum": 0}, "wall_time_seconds": {"type": "number", "minimum": 0}, "compute": {"type": "string"}, "memory_mb": {"type": "number", "minimum": 0}}},
     "metrics": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number"}},
-    "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "records"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "records": {"type": "integer", "minimum": 0}}}},
     "deviations": {"type": "array", "items": {"type": "string"}},
+    "failure_reasons": {"type": "array", "items": {"type": "string"}},
     "status": {"enum": ["valid", "invalid", "incomplete"]}
   }
 }

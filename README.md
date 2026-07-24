@@ -61,9 +61,9 @@ An evaluation has four independent layers:
 2. State a bounded capability claim, task family, input provenance, metric direction and units, and a success threshold.
 3. Name concrete failure cases, invalid-run conditions, likely gaming strategies, robustness checks, and contamination risk with mitigations and residual risk.
 4. Declare budgets for tokens, money, wall time, compute, and memory. Use `not applicable` only when a measure truly cannot apply.
-5. Add fixtures, a scorer, and any domain adapter under a directory owned by the benchmark. Preserve raw evidence separately from aggregate results.
-6. Create a run report for each system configuration. Record system version, environment, seed, resource observations, metric values, evidence, deviations, and validity status.
-7. Validate the artifacts, run the benchmark's focused checks, and document what result would falsify the original claim.
+5. Add fixtures with `development`, `held_out`, or `adversarial` partitions, select a scorer, and add any domain adapter under a directory owned by the benchmark.
+6. Run each system configuration through the pipeline. It preserves fixture-level evidence before producing a hashed run report with resource observations and validity status.
+7. Inspect failure records, validate the artifacts, run the benchmark's focused checks, and document what result would falsify the original claim.
 
 The manifest and run-report schemas are deliberately domain-neutral. Domain adapters may add detail, but cannot omit the core evidence requirements.
 
@@ -83,7 +83,16 @@ The initial reference tool uses only the Python standard library.
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 PYTHONPATH=src python3 -m valudus validate-benchmark examples/minimal-benchmark.json
 PYTHONPATH=src python3 -m valudus validate-run examples/minimal-run.json
+PYTHONPATH=src python3 -m valudus run examples/minimal-benchmark.json \
+  --adapter valudus.reference_adapter:evaluate \
+  --output /tmp/valudus-reference-run \
+  --system-name reference-system \
+  --system-version 0.1.0 \
+  --configuration "deterministic reference configuration" \
+  --reproducibility-tier exact
 ```
+
+See [the pipeline architecture](docs/PIPELINE.md) for the adapter contract, artifact order, failure behavior, and current isolation boundary.
 
 ## Status
 

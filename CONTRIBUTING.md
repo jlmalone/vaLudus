@@ -20,3 +20,7 @@ Do not submit results that conceal material budget, prompt, tool, data, or envir
 ## Scope discipline
 
 New domain adapters must preserve the core artifact contracts. Domain-specific assumptions belong with the adapter, while the benchmark manifest and run report remain comparable across the project.
+
+## Public naming
+
+Public repository material uses neutral names for external organizations, systems, and models. Use a descriptive role such as `candidate-system`, `reference-adapter`, or `system-under-test` unless Salient Vision Technologies, LLC has explicitly approved a public identifier. This applies to source, documentation, fixtures, test data, issue text, and result artifacts.

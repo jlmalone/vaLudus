@@ -3,75 +3,43 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
-
-REQUIRED_FIELDS = {
-    "benchmark": {
-        "schema_version", "id", "version", "task_family", "capability_claim",
-        "metrics", "success_threshold", "failure_cases", "contamination", "budget",
-    },
-    "run": {
-        "schema_version", "run_id", "benchmark", "system", "reproducibility_tier",
-        "environment", "resources", "metrics", "evidence", "status",
-    },
-}
-
-
-def validate_artifact(path: Path, artifact_type: str) -> list[str]:
-    """Return contract errors for a JSON artifact without external dependencies."""
-    try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        return [f"cannot read JSON: {error}"]
-    if not isinstance(document, dict):
-        return ["artifact must be a JSON object"]
-
-    errors: list[str] = []
-    missing = REQUIRED_FIELDS[artifact_type] - document.keys()
-    if missing:
-        errors.append(f"missing required fields: {', '.join(sorted(missing))}")
-    if document.get("schema_version") != "1.0":
-        errors.append("schema_version must be 1.0")
-    if artifact_type == "benchmark":
-        errors.extend(_validate_benchmark(document))
-    else:
-        errors.extend(_validate_run(document))
-    return errors
-
-
-def _validate_benchmark(document: dict) -> list[str]:
-    errors: list[str] = []
-    if not isinstance(document.get("metrics"), list) or not document["metrics"]:
-        errors.append("metrics must be a non-empty list")
-    if not isinstance(document.get("failure_cases"), list) or not document["failure_cases"]:
-        errors.append("failure_cases must be a non-empty list")
-    contamination = document.get("contamination")
-    if not isinstance(contamination, dict) or not contamination.get("residual_risk"):
-        errors.append("contamination must declare residual_risk")
-    budget = document.get("budget")
-    if not isinstance(budget, dict) or {"tokens", "money_usd", "wall_time_seconds", "compute", "memory_mb"} - budget.keys():
-        errors.append("budget must declare tokens, money_usd, wall_time_seconds, compute, and memory_mb")
-    return errors
-
-
-def _validate_run(document: dict) -> list[str]:
-    errors: list[str] = []
-    if document.get("reproducibility_tier") not in {"exact", "procedural", "exploratory"}:
-        errors.append("reproducibility_tier must be exact, procedural, or exploratory")
-    if document.get("status") not in {"valid", "invalid", "incomplete"}:
-        errors.append("status must be valid, invalid, or incomplete")
-    if not isinstance(document.get("evidence"), list) or not document["evidence"]:
-        errors.append("evidence must be a non-empty list")
-    return errors
-
+from .runner import RunnerError, run_benchmark
+from .validation import validate_artifact
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate vaLudus benchmark artifacts.")
-    parser.add_argument("command", choices=["validate-benchmark", "validate-run"])
-    parser.add_argument("artifact", type=Path)
+    subcommands = parser.add_subparsers(dest="command", required=True)
+    for command in ("validate-benchmark", "validate-run"):
+        validation = subcommands.add_parser(command)
+        validation.add_argument("artifact", type=Path)
+    run = subcommands.add_parser("run")
+    run.add_argument("manifest", type=Path)
+    run.add_argument("--adapter", required=True, help="Callable adapter in module:attribute notation.")
+    run.add_argument("--output", required=True, type=Path)
+    run.add_argument("--system-name", required=True)
+    run.add_argument("--system-version", required=True)
+    run.add_argument("--configuration", required=True)
+    run.add_argument(
+        "--reproducibility-tier",
+        choices=["exact", "procedural", "exploratory"],
+        default="procedural",
+        help="Claim only the strongest tier supported by the captured conditions.",
+    )
     args = parser.parse_args()
+    if args.command == "run":
+        try:
+            report = run_benchmark(
+                args.manifest, args.adapter, args.output, args.system_name,
+                args.system_version, args.configuration, args.reproducibility_tier,
+            )
+        except RunnerError as error:
+            print(f"RUN FAILED: {error}")
+            return 2
+        print(f"{report['status'].upper()}: {args.output / 'run-report.json'}")
+        return 0 if report["status"] == "valid" else 1
+
     artifact_type = "benchmark" if args.command == "validate-benchmark" else "run"
     errors = validate_artifact(args.artifact, artifact_type)
     if errors:
