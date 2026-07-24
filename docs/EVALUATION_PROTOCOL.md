@@ -21,7 +21,7 @@ The manifest is immutable once a comparative run begins. It declares:
 
 ### Run report
 
-The run report identifies the system and benchmark versions, captures environment and seed information, reports resource observations, records metric values, and links to evidence. It also states deviations and invalidation status.
+The run report identifies the system and benchmark versions, captures environment and seed information, reports resource observations, records metric values, and links to evidence. It separately reports execution validity and benchmark outcome: a valid run can fail its capability threshold, while an invalid run makes no capability claim.
 
 ## Comparison rules
 

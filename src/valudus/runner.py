@@ -101,6 +101,11 @@ def run_benchmark(
     budget_breaches = _budget_breaches(manifest["budget"], resources)
     evidence_hash = sha256_file(evidence_path)
     status = "valid" if not execution_errors and not budget_breaches else "invalid"
+    exact_match_rate = aggregate_exact_match(scores)
+    threshold = manifest["success_threshold"]
+    outcome = "invalid" if status == "invalid" else (
+        "passed" if exact_match_rate >= threshold["value"] else "failed"
+    )
     report = {
         "schema_version": "1.1",
         "run_id": f"{manifest['id']}-{manifest['version']}-{evidence_hash[:12]}",
@@ -113,11 +118,12 @@ def run_benchmark(
             "seed": manifest["execution"]["seed"],
         },
         "resources": resources,
-        "metrics": {"exact_match_rate": aggregate_exact_match(scores)},
+        "metrics": {"exact_match_rate": exact_match_rate},
         "evidence": [{"path": "evidence.jsonl", "sha256": evidence_hash, "records": len(records)}],
         "deviations": [],
         "failure_reasons": execution_errors + budget_breaches,
         "status": status,
+        "outcome": outcome,
     }
     write_json(output_directory / "run-report.json", report)
     return report

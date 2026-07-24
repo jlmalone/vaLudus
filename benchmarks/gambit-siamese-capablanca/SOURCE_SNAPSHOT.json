@@ -1,0 +1,7 @@
+{
+  "source_project": "Gambit",
+  "source_commit": "a9b8409ac6c99ad02300959cdf03cd481631d0a7",
+  "source_path": "src/capablanca/siameseTurns.ts",
+  "source_sha256": "f5a4810a4116f853ad17d3b94686d2231d7d27f33c65146a17b332838a948656",
+  "scope": "Pure two-board turn routing and simultaneous-pair advancement."
+}

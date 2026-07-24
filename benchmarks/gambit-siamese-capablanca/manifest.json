@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.1",
+  "id": "gambit-siamese-capablanca-routing",
+  "version": "0.1.0",
+  "task_family": "variant-rule reasoning",
+  "capability_claim": "A system can apply the declared two-board turn-routing and pair-advancement rules exactly across normal, terminal, and symmetric states.",
+  "input_provenance": "Published rule cases derived from the pinned source snapshot in SOURCE_SNAPSHOT.json. This is a correctness gate, not a contamination-resistant ranking set.",
+  "metrics": [{"name": "exact_match_rate", "direction": "higher_is_better", "unit": "fraction"}],
+  "success_threshold": {"metric": "exact_match_rate", "operator": ">=", "value": 1.0},
+  "failure_cases": ["A finished board is permitted to move.", "A surviving board stalls because a finished board blocks routing.", "A simultaneous pair flips before every live board has moved.", "A simultaneous pair fails to complete when its counterpart is finished."],
+  "robustness_checks": ["Swap board labels and verify the symmetric outcome.", "Vary history parity while one board is finished.", "Exercise phase mismatch and already-moved states."],
+  "anti_gaming_checks": ["The published set is treated as a regression gate only.", "Comparative studies must use separately generated and access-controlled cases."],
+  "contamination": {"risk_level": "high", "mitigations": ["The manifest labels this version as a public correctness gate.", "The source snapshot and fixture provenance are explicit."], "residual_risk": "A candidate system can memorize every published case, so this version cannot establish general rule-reasoning performance."},
+  "budget": {"tokens": {"maximum": null}, "money_usd": {"maximum": null}, "wall_time_seconds": {"maximum": 5.0}, "compute": "one local CPU process", "memory_mb": {"maximum": 512.0}},
+  "fixtures": [
+    {"id": "alternating-a-even", "partition": "development", "input": {"operation": "board_allowed", "board": "a", "rotation": {"turn_style": "alternating", "history_length": 0, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "alternating-b-even", "partition": "development", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "alternating", "history_length": 0, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": false}},
+    {"id": "alternating-b-odd", "partition": "development", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "alternating", "history_length": 1, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "independent-live-b", "partition": "development", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "independent", "history_length": 0, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "duo-second-live-board", "partition": "development", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "simultaneous", "history_length": 0, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": true, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "duo-already-moved-blocked", "partition": "adversarial", "input": {"operation": "board_allowed", "board": "a", "rotation": {"turn_style": "simultaneous", "history_length": 0, "over": {"a": false, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": true, "b": false}}}, "expected": {"allowed": false}},
+    {"id": "finished-a-blocked", "partition": "adversarial", "input": {"operation": "board_allowed", "board": "a", "rotation": {"turn_style": "independent", "history_length": 0, "over": {"a": true, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": false}},
+    {"id": "survivor-b-even", "partition": "adversarial", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "alternating", "history_length": 2, "over": {"a": true, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "survivor-b-odd", "partition": "adversarial", "input": {"operation": "board_allowed", "board": "b", "rotation": {"turn_style": "alternating", "history_length": 3, "over": {"a": true, "b": false}, "turn": {"a": "w", "b": "w"}, "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}}}, "expected": {"allowed": true}},
+    {"id": "duo-first-move-no-flip", "partition": "development", "input": {"operation": "advance_pair", "board": "a", "moved_color": "w", "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}, "over": {"a": false, "b": false}}, "expected": {"moved_this_pair": {"a": true, "b": false}, "pair_phase": "w"}},
+    {"id": "duo-complete-pair-flips", "partition": "development", "input": {"operation": "advance_pair", "board": "b", "moved_color": "w", "pair_phase": "w", "moved_this_pair": {"a": true, "b": false}, "over": {"a": false, "b": false}}, "expected": {"moved_this_pair": {"a": false, "b": false}, "pair_phase": "b"}},
+    {"id": "duo-survivor-b-completes", "partition": "adversarial", "input": {"operation": "advance_pair", "board": "b", "moved_color": "w", "pair_phase": "w", "moved_this_pair": {"a": false, "b": false}, "over": {"a": true, "b": false}}, "expected": {"moved_this_pair": {"a": false, "b": false}, "pair_phase": "b"}},
+    {"id": "duo-survivor-a-symmetric", "partition": "adversarial", "input": {"operation": "advance_pair", "board": "a", "moved_color": "b", "pair_phase": "b", "moved_this_pair": {"a": false, "b": false}, "over": {"a": false, "b": true}}, "expected": {"moved_this_pair": {"a": false, "b": false}, "pair_phase": "w"}}
+  ],
+  "evaluation": {"scorer": "exact_match", "primary_metric": "exact_match_rate"},
+  "execution": {"seed": 20260724}
+}

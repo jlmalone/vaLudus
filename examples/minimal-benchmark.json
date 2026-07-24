@@ -6,7 +6,7 @@
   "capability_claim": "The system can produce valid answers for a bounded set of structured problems under a declared budget.",
   "input_provenance": "Synthetic fixtures generated from a documented grammar.",
   "metrics": [{"name": "valid_answer_rate", "direction": "higher_is_better", "unit": "fraction"}],
-  "success_threshold": "valid_answer_rate >= 0.90 on the held-out partition",
+  "success_threshold": {"metric": "exact_match_rate", "operator": ">=", "value": 0.9},
   "failure_cases": ["Malformed answer is emitted.", "Declared resource budget is exceeded."],
   "robustness_checks": ["Equivalent input serializations."],
   "anti_gaming_checks": ["Held-out fixtures use unseen parameter combinations."],

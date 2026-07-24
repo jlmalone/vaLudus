@@ -59,6 +59,11 @@ def _validate_benchmark(document: dict[str, Any]) -> list[str]:
     metrics = document.get("metrics")
     if not isinstance(metrics, list) or not metrics:
         errors.append("metrics must be a non-empty list")
+    threshold = document.get("success_threshold")
+    if not isinstance(threshold, dict) or threshold.get("metric") != "exact_match_rate":
+        errors.append("success_threshold must target exact_match_rate")
+    elif threshold.get("operator") != ">=" or not isinstance(threshold.get("value"), (int, float)):
+        errors.append("success_threshold must use >= with a numeric value")
     if not isinstance(document.get("failure_cases"), list) or not document["failure_cases"]:
         errors.append("failure_cases must be a non-empty list")
     contamination = document.get("contamination")
@@ -119,6 +124,8 @@ def _validate_run(document: dict[str, Any]) -> list[str]:
         errors.append("reproducibility_tier must be exact, procedural, or exploratory")
     if document.get("status") not in {"valid", "invalid", "incomplete"}:
         errors.append("status must be valid, invalid, or incomplete")
+    if document.get("outcome") not in {"passed", "failed", "invalid"}:
+        errors.append("outcome must be passed, failed, or invalid")
     if not isinstance(document.get("evidence"), list) or not document["evidence"]:
         errors.append("evidence must be a non-empty list")
     return errors

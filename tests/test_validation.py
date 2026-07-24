@@ -40,6 +40,7 @@ class ValidationTests(unittest.TestCase):
                 "deterministic reference configuration",
             )
             self.assertEqual("valid", report["status"])
+            self.assertEqual("passed", report["outcome"])
             self.assertEqual("procedural", report["reproducibility_tier"])
             self.assertEqual(1.0, report["metrics"]["exact_match_rate"])
             self.assertTrue((output / "evidence.jsonl").is_file())

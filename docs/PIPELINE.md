@@ -29,7 +29,7 @@ This first adapter mechanism is intentionally in-process. It is appropriate for 
 1. `evidence.jsonl`, one execution record per fixture;
 2. `run-report.json`, including the SHA-256 digest of the evidence file.
 
-An adapter exception, unobserved mandatory cost, or measured budget breach produces a report with `status: "invalid"` and explicit `failure_reasons`. The command exits non-zero after preserving those artifacts. Negative and invalid outcomes therefore remain inspectable.
+An adapter exception, unobserved mandatory cost, or measured budget breach produces a report with `status: "invalid"`, `outcome: "invalid"`, and explicit `failure_reasons`. A valid run separately receives `outcome: "passed"` or `outcome: "failed"` by its declared threshold. The command exits non-zero only for invalid execution, so negative capability results remain inspectable experiment artifacts.
 
 ## Reproducibility and comparability
 

@@ -10,5 +10,6 @@
   "evidence": [{"path": "evidence.jsonl", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "records": 0}],
   "deviations": [],
   "failure_reasons": [],
-  "status": "valid"
+  "status": "valid",
+  "outcome": "passed"
 }
