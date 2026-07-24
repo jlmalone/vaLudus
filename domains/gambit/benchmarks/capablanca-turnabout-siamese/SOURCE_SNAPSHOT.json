@@ -1,0 +1,19 @@
+{
+  "source_repository": "Gambit web reference implementation",
+  "source_commit": "a9b8409ac6c99ad02300959cdf03cd481631d0a7",
+  "source_files": [
+    {
+      "path": "src/capablanca/odds.ts",
+      "sha256": "85ec6bde2d001b15841382f1b05d4819e5c7c40d0fddb6f412fd675ce0bdfcf3"
+    },
+    {
+      "path": "src/capablanca/siameseTurns.ts",
+      "sha256": "f5a4810a4116f853ad17d3b94686d2231d7d27f33c65146a17b332838a948656"
+    },
+    {
+      "path": "docs/CAPABLANCA.md",
+      "sha256": "7d547b400452e4d56ab90ed0743767949550256286b17cc76e14bf00494eaa87"
+    }
+  ],
+  "status": "design-only: no generated fixture or comparative result exists yet"
+}

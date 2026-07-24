@@ -73,6 +73,7 @@ The manifest and run-report schemas are deliberately domain-neutral. Domain adap
 
 - `schemas/` contains versioned machine-readable contracts for benchmark manifests and run reports.
 - `src/valudus/` contains the first reference validation tools.
+- `domains/` contains domain-owned pipeline, generator, and benchmark placeholders.
 - `examples/` contains a minimal general-purpose benchmark and run report.
 - `docs/` records the evaluation protocol.
 - `tests/` verifies the reference tooling.
@@ -100,4 +101,6 @@ See [the pipeline architecture](docs/PIPELINE.md) for the adapter contract, arti
 
 The repository is intentionally small at inception. Its first milestone is a stable, domain-neutral artifact contract. Future adapters can support different kinds of intelligence and task environments without weakening the common evidence standard.
 
-See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md), [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md).
+See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md), [domain layout](domains/README.md),
+[prompt-conditioned evaluation protocol](docs/PROMPT_CONDITIONED_EVALUATION.md),
+[roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md).
