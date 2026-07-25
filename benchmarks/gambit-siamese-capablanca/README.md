@@ -15,13 +15,12 @@ All fixtures are public. This is therefore a regression and integration gate, no
 ## Run the reference implementation
 
 ```sh
-PYTHONPATH=src python3 -m valudus run benchmarks/gambit-siamese-capablanca/manifest.json \
-  --adapter valudus.gambit_siamese_capablanca:evaluate \
+gradle run --args="run-reference --manifest benchmarks/gambit-siamese-capablanca/manifest.json --adapter gambit-siamese-capablanca-reference \
   --output /tmp/gambit-siamese-capablanca-reference \
   --system-name reference-rule-implementation \
   --system-version 0.1.0 \
-  --configuration "pinned public routing rules" \
-  --reproducibility-tier exact
+  --configuration 'pinned public routing rules' \
+  --reproducibility-tier exact"
 ```
 
-Any candidate adapter uses the same `output` and `usage` response contract described in the pipeline documentation.
+Candidate execution is intentionally not available through this trusted reference boundary. It requires a future isolated adapter protocol described in the pipeline documentation.

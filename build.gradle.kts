@@ -17,7 +17,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("org.valudus.governance.GovernanceCliKt")
+    mainClass.set("org.valudus.ValudusCliKt")
 }
 
 tasks.test {

@@ -72,7 +72,7 @@ The manifest and run-report schemas are deliberately domain-neutral. Domain adap
 ## Repository layout
 
 - `schemas/` contains versioned machine-readable contracts for benchmark manifests and run reports.
-- `src/valudus/` contains the first reference validation tools.
+- `src/main/kotlin/` contains the Kotlin/JVM reference validation tools, runners, and trusted local adapters.
 - `domains/` contains domain-owned pipeline, generator, and benchmark placeholders.
 - `examples/` contains a minimal general-purpose benchmark and run report.
 - `docs/` records the evaluation protocol.
@@ -80,19 +80,18 @@ The manifest and run-report schemas are deliberately domain-neutral. Domain adap
 
 ## Quick start
 
-The initial reference tool uses only the Python standard library.
+The initial reference tool is Kotlin/JVM. It requires JDK 21 and Gradle.
 
 ```sh
-PYTHONPATH=src python3 -m unittest discover -s tests -v
-PYTHONPATH=src python3 -m valudus validate-benchmark examples/minimal-benchmark.json
-PYTHONPATH=src python3 -m valudus validate-run examples/minimal-run.json
-PYTHONPATH=src python3 -m valudus run examples/minimal-benchmark.json \
-  --adapter valudus.reference_adapter:evaluate \
+gradle test
+gradle run --args="validate-benchmark examples/minimal-benchmark.json"
+gradle run --args="validate-run examples/minimal-run.json"
+gradle run --args="run-reference --manifest examples/minimal-benchmark.json --adapter reference-sum \
   --output /tmp/valudus-reference-run \
   --system-name reference-system \
   --system-version 0.1.0 \
-  --configuration "deterministic reference configuration" \
-  --reproducibility-tier exact
+  --configuration 'deterministic reference configuration' \
+  --reproducibility-tier exact"
 ```
 
 See [the pipeline architecture](docs/PIPELINE.md) for the adapter contract, artifact order, failure behavior, and current isolation boundary.
