@@ -1,0 +1,4 @@
+{"configuration_id":"beginner-1","player_score":1.0,"plies":42,"mean_decision_ms":38.0}
+{"configuration_id":"beginner-1","player_score":0.5,"plies":70,"mean_decision_ms":41.0}
+{"configuration_id":"odds-rook","player_score":1.0,"plies":54,"mean_decision_ms":126.0}
+{"configuration_id":"odds-rook","player_score":0.0,"plies":61,"mean_decision_ms":131.0}

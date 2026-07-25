@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Bounded local calibration of difficulty presets and material handicaps.",
+  "execution": { "games_per_configuration": 12, "max_plies": 160, "max_move_time_ms": 3000, "hosted_calls": 0, "tokens": 0 },
+  "configurations": [
+    { "id": "beginner-1", "target_player_score": 0.65, "engine_elo": 1320, "random_move_chance": 0.9, "handicap": "none" },
+    { "id": "beginner-2", "target_player_score": 0.65, "engine_elo": 1320, "random_move_chance": 0.6, "handicap": "none" },
+    { "id": "beginner-3", "target_player_score": 0.65, "engine_elo": 1320, "random_move_chance": 0.3, "handicap": "none" },
+    { "id": "club", "target_player_score": 0.65, "engine_elo": 1320, "random_move_chance": 0.1, "handicap": "none" },
+    { "id": "intermediate", "target_player_score": 0.50, "engine_elo": 1600, "random_move_chance": 0.0, "handicap": "none" },
+    { "id": "advanced", "target_player_score": 0.35, "engine_elo": 1900, "random_move_chance": 0.0, "handicap": "none" },
+    { "id": "expert", "target_player_score": 0.20, "engine_elo": 2200, "random_move_chance": 0.0, "handicap": "none" },
+    { "id": "master", "target_player_score": 0.10, "engine_elo": 3000, "random_move_chance": 0.0, "handicap": "none" },
+    { "id": "odds-pawn", "target_player_score": 0.65, "engine_elo": 1372, "random_move_chance": 0.0, "handicap": "pawn" },
+    { "id": "odds-knight", "target_player_score": 0.65, "engine_elo": 1612, "random_move_chance": 0.0, "handicap": "knight" },
+    { "id": "odds-rook", "target_player_score": 0.65, "engine_elo": 1772, "random_move_chance": 0.0, "handicap": "rook" },
+    { "id": "odds-rook-pawn", "target_player_score": 0.65, "engine_elo": 1892, "random_move_chance": 0.0, "handicap": "rook_pawn" },
+    { "id": "odds-queen", "target_player_score": 0.65, "engine_elo": 2162, "random_move_chance": 0.0, "handicap": "queen" }
+  ]
+}

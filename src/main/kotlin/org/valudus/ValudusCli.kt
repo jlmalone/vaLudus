@@ -2,9 +2,11 @@ package org.valudus
 
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlinx.serialization.json.jsonArray
 import org.valudus.core.ContractValidator
 import org.valudus.core.EvaluationPipeline
 import org.valudus.core.UciEngine
+import org.valudus.gambit.DifficultyCalibration
 import org.valudus.governance.main as governanceMain
 
 fun main(arguments: Array<String>) {
@@ -27,6 +29,11 @@ fun main(arguments: Array<String>) {
                 val result = engine.analyse(required(options, "--fen"), required(options, "--variant"), required(options, "--depth").toInt())
                 println("{\"bestmove\":\"${result.bestmove}\",\"elapsed_seconds\":${result.elapsedSeconds}}")
             }
+        }
+        "summarize-difficulty" -> {
+            val options = arguments.drop(1).chunked(2).associate { require(it.size == 2) { "missing option value" }; it[0] to it[1] }
+            val report = DifficultyCalibration.writeSummary(Path(required(options, "--plan")), Path(required(options, "--results")), Path(required(options, "--output")))
+            println("WROTE: ${required(options, "--output")} (${report["configurations"]!!.jsonArray.size} configurations)")
         }
         else -> error("unknown command: ${arguments[0]}")
     }
