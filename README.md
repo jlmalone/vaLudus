@@ -102,6 +102,7 @@ The repository is intentionally small at inception. Its first milestone is a sta
 
 See [the evaluation protocol](docs/EVALUATION_PROTOCOL.md), [domain layout](domains/README.md),
 [prompt-conditioned evaluation protocol](docs/PROMPT_CONDITIONED_EVALUATION.md),
+[society simulation landscape](docs/SOCIETY_SIMULATION_LANDSCAPE.md),
 [roadmap](docs/ROADMAP.md), and [contribution guide](CONTRIBUTING.md).
 
 ## Synthetic governance harness

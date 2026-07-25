@@ -11,4 +11,6 @@ remain an explicitly modeled world with inspectable rules, incentives, initial c
 failure criteria.
 
 See [pipeline](pipeline/README.md), [generator](generator/README.md), and
-[benchmarks](benchmarks/README.md).
+[benchmarks](benchmarks/README.md). The
+[society simulation landscape](../../docs/SOCIETY_SIMULATION_LANDSCAPE.md) records related
+generative, economic, policy, daily-activity, and social-media systems considered during scoping.
