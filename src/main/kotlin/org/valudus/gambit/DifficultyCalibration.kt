@@ -1,27 +1,68 @@
 package org.valudus.gambit
 
 import java.nio.file.Path
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.math.sqrt
+import kotlin.random.Random
 import kotlinx.serialization.json.*
 
 data class DifficultyConfig(val id: String, val targetScore: Double, val engineElo: Int, val randomChance: Double, val handicap: String)
 data class GameResult(val configId: String, val playerScore: Double, val plies: Int, val decisionMs: Double)
+data class CalibrationExecution(val gamesPerConfiguration: Int, val maxPlies: Int, val maxMoveTimeMs: Int)
 
 /** Aggregates bounded, local game records. It never launches an engine or makes network calls. */
 object DifficultyCalibration {
     private val json = Json { prettyPrint = true; ignoreUnknownKeys = false }
 
     fun readPlan(path: Path): Map<String, DifficultyConfig> {
-        val root = json.parseToJsonElement(path.readText()).jsonObject
+        val root = readPlanRoot(path)
         return root["configurations"]!!.jsonArray.associate { element ->
             val config = element.jsonObject
             val id = config["id"]!!.jsonPrimitive.content
             id to DifficultyConfig(id, config["target_player_score"]!!.jsonPrimitive.double, config["engine_elo"]!!.jsonPrimitive.int, config["random_move_chance"]!!.jsonPrimitive.double, config["handicap"]!!.jsonPrimitive.content)
         }
+    }
+
+    /** Creates a fixed, paired color schedule before games are run. */
+    fun writeSchedule(planPath: Path, seed: Long, outputPath: Path): JsonObject {
+        require(!outputPath.exists()) { "refusing to overwrite existing output: $outputPath" }
+        val root = readPlanRoot(planPath)
+        val plan = readPlan(planPath)
+        val execution = readExecution(root)
+        require(execution.gamesPerConfiguration % 2 == 0) { "execution.games_per_configuration must be even for paired colors" }
+        val games = mutableListOf<JsonObject>()
+        plan.values.sortedBy { it.id }.forEach { config ->
+            repeat(execution.gamesPerConfiguration / 2) { pairIndex ->
+                val pairId = "${config.id}-pair-${(pairIndex + 1).toString().padStart(2, '0')}"
+                listOf("white", "black").forEachIndexed { colorIndex, playerColor ->
+                    games += buildJsonObject {
+                        put("game_id", "${config.id}-${(pairIndex * 2 + colorIndex + 1).toString().padStart(2, '0')}")
+                        put("configuration_id", config.id)
+                        put("pair_id", pairId)
+                        put("player_color", playerColor)
+                        put("max_plies", execution.maxPlies)
+                        put("max_move_time_ms", execution.maxMoveTimeMs)
+                    }
+                }
+            }
+        }
+        games.shuffle(Random(seed))
+        val schedule = buildJsonObject {
+            put("schema_version", "1.0")
+            put("purpose", "Deterministic paired-color difficulty and handicap calibration schedule")
+            put("seed", seed)
+            put("plan_sha256", sha256(planPath.readText()))
+            putJsonObject("budget") { put("hosted_calls", 0); put("tokens", 0); put("money_usd", 0.0) }
+            putJsonArray("games") { games.forEach { add(it) } }
+        }
+        outputPath.parent?.toFile()?.mkdirs()
+        outputPath.writeText(json.encodeToString(JsonObject.serializer(), schedule) + "\n")
+        return schedule
     }
 
     fun readResults(path: Path): List<GameResult> = path.readLines().filter { it.isNotBlank() }.mapIndexed { index, line ->
@@ -74,4 +115,19 @@ object DifficultyCalibration {
             put("recommendation", recommendation); put("suggested_engine_elo_delta", suggestedDelta)
         }
     }
+
+    private fun readPlanRoot(path: Path): JsonObject = json.parseToJsonElement(path.readText()).jsonObject
+
+    private fun readExecution(root: JsonObject): CalibrationExecution {
+        val execution = root["execution"]?.jsonObject ?: error("plan requires execution")
+        val games = execution["games_per_configuration"]?.jsonPrimitive?.int ?: error("execution.games_per_configuration is required")
+        val maxPlies = execution["max_plies"]?.jsonPrimitive?.int ?: error("execution.max_plies is required")
+        val maxMoveTimeMs = execution["max_move_time_ms"]?.jsonPrimitive?.int ?: error("execution.max_move_time_ms is required")
+        require(games > 0 && maxPlies > 0 && maxMoveTimeMs > 0) { "execution limits must be positive" }
+        return CalibrationExecution(games, maxPlies, maxMoveTimeMs)
+    }
+
+    private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
+        .digest(value.toByteArray(StandardCharsets.UTF_8))
+        .joinToString("") { "%02x".format(it) }
 }

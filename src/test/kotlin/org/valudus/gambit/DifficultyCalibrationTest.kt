@@ -1,10 +1,13 @@
 package org.valudus.gambit
 
 import kotlin.io.path.Path
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -31,5 +34,20 @@ class DifficultyCalibrationTest {
         val entry = report["configurations"]!!.jsonArray.single().jsonObject
         assertEquals("raise_engine_strength", entry["recommendation"]!!.jsonPrimitive.content)
         assertTrue(entry["suggested_engine_elo_delta"]!!.jsonPrimitive.content.toInt() > 0)
+    }
+
+    @Test fun `schedule is deterministic and preserves paired colors`() {
+        val directory = createTempDirectory("difficulty-schedule-")
+        val firstPath = directory.resolve("first.json")
+        val secondPath = directory.resolve("second.json")
+        val first = DifficultyCalibration.writeSchedule(planPath, 8128, firstPath)
+        val second = DifficultyCalibration.writeSchedule(planPath, 8128, secondPath)
+
+        assertEquals(firstPath.readText(), secondPath.readText())
+        assertEquals(156, first["games"]!!.jsonArray.size)
+        first["games"]!!.jsonArray.groupBy { it.jsonObject["pair_id"]!!.jsonPrimitive.content }.values.forEach { pair ->
+            assertEquals(setOf("white", "black"), pair.map { it.jsonObject["player_color"]!!.jsonPrimitive.content }.toSet())
+            assertTrue(pair.all { it.jsonObject["max_plies"]!!.jsonPrimitive.int == 160 })
+        }
     }
 }

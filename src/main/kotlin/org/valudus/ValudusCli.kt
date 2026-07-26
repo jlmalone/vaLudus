@@ -10,7 +10,7 @@ import org.valudus.gambit.DifficultyCalibration
 import org.valudus.governance.main as governanceMain
 
 fun main(arguments: Array<String>) {
-    require(arguments.isNotEmpty()) { "usage: validate-benchmark PATH | validate-run PATH | run-reference ... | probe-engine ... | generate ..." }
+    require(arguments.isNotEmpty()) { "usage: validate-benchmark PATH | validate-run PATH | run-reference ... | probe-engine ... | schedule-difficulty ... | summarize-difficulty ... | generate ..." }
     if (arguments[0] == "generate") return governanceMain(arguments)
     when (arguments[0]) {
         "validate-benchmark", "validate-run" -> {
@@ -34,6 +34,11 @@ fun main(arguments: Array<String>) {
             val options = arguments.drop(1).chunked(2).associate { require(it.size == 2) { "missing option value" }; it[0] to it[1] }
             val report = DifficultyCalibration.writeSummary(Path(required(options, "--plan")), Path(required(options, "--results")), Path(required(options, "--output")))
             println("WROTE: ${required(options, "--output")} (${report["configurations"]!!.jsonArray.size} configurations)")
+        }
+        "schedule-difficulty" -> {
+            val options = arguments.drop(1).chunked(2).associate { require(it.size == 2) { "missing option value" }; it[0] to it[1] }
+            val schedule = DifficultyCalibration.writeSchedule(Path(required(options, "--plan")), required(options, "--seed").toLong(), Path(required(options, "--output")))
+            println("WROTE: ${required(options, "--output")} (${schedule["games"]!!.jsonArray.size} games)")
         }
         else -> error("unknown command: ${arguments[0]}")
     }
