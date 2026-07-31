@@ -49,7 +49,7 @@ object GovernancePipeline {
             putJsonObject("benchmark") { put("id", manifest.requiredString("id")); put("version", manifest.requiredString("version")) }
             putJsonObject("system") { put("name", "governance-reference"); put("version", "0.1.0"); put("configuration", "deterministic synthetic charter oracle") }
             put("reproducibility_tier", "exact")
-            putJsonObject("environment") { put("runtime", "Kotlin/JVM"); put("seed", manifest.requiredObject("execution").requiredNumber("seed").toInt()) }
+            putJsonObject("environment") { put("platform", "${System.getProperty("os.name")} ${System.getProperty("os.arch")}"); put("runtime", "Kotlin/JVM ${System.getProperty("java.version")}"); put("seed", manifest.requiredObject("execution").requiredNumber("seed").toInt()) }
             putJsonObject("resources") { put("tokens", 0); put("money_usd", 0.0); put("wall_time_seconds", elapsedSeconds); put("compute", "one trusted local process"); put("memory_mb", JsonNull) }
             putJsonObject("metrics") { put("exact_match_rate", exactMatchRate) }
             putJsonArray("evidence") { add(buildJsonObject { put("path", "evidence.jsonl"); put("sha256", evidenceHash); put("records", records.size) }) }

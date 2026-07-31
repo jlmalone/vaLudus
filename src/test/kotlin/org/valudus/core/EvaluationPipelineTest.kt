@@ -15,6 +15,8 @@ class EvaluationPipelineTest {
     @Test fun `public manifests validate`() {
         val manifest = EvaluationPipeline.readObject(root.resolve("examples/minimal-benchmark.json"))
         assertTrue(ContractValidator.validateBenchmark(manifest).isEmpty())
+        val run = EvaluationPipeline.readObject(root.resolve("examples/minimal-run.json"))
+        assertTrue(ContractValidator.validateRun(run).isEmpty())
     }
 
     @Test fun `sum reference run writes valid evidence first`() {

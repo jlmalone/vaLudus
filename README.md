@@ -126,3 +126,21 @@ gradle run --args="run-reference --manifest /secure/governance-held-out-240.json
 
 Candidate adapters and isolated execution are the next integration layer. See the
 [governance domain](domains/governance/README.md) for the protocol and boundaries.
+
+## Synthetic society policy laboratory
+
+The first society experiment is a deterministic paired counterfactual. It runs 200 synthetic
+populations through the same income shock and false-information campaign, once without an
+intervention and once with a provenance label. It measures false-belief adoption, resharing,
+neutral-information reach, and effects among low-resource agents while preserving daily and
+individual evidence.
+
+```sh
+gradle run --args="simulate-society \
+  --plan domains/galactica-society/benchmarks/provenance-label/PLAN.json \
+  --output /tmp/valudus-provenance-label"
+```
+
+This is an experiment inside a declared synthetic model, not a prediction about real people. See
+the [experiment contract](domains/galactica-society/benchmarks/provenance-label/README.md) and
+[society domain](domains/galactica-society/README.md).

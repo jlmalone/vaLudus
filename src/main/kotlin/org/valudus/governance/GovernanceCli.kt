@@ -2,6 +2,7 @@ package org.valudus.governance
 
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlinx.serialization.json.jsonPrimitive
 
 fun main(arguments: Array<String>) {
     require(arguments.isNotEmpty()) { "usage: generate --output PATH [--cases N] [--seed N] | run-reference --manifest PATH --output PATH" }
@@ -18,7 +19,7 @@ fun main(arguments: Array<String>) {
             val manifest = Path(requireNotNull(options["--manifest"]) { "--manifest is required" })
             val output = Path(requireNotNull(options["--output"]) { "--output is required" })
             val report = GovernancePipeline.runReference(manifest, output)
-            println("${report["status"]}: $output/run-report.json")
+            println("${report["status"]!!.jsonPrimitive.content}: $output/run-report.json")
         }
         else -> error("unknown command: ${arguments[0]}")
     }

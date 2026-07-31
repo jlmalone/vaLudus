@@ -55,6 +55,14 @@ object ContractValidator {
         if (document["reproducibility_tier"]?.jsonPrimitive?.content !in setOf("exact", "procedural", "exploratory")) errors += "reproducibility_tier must be exact, procedural, or exploratory"
         if (document["status"]?.jsonPrimitive?.content !in setOf("valid", "invalid", "incomplete")) errors += "status must be valid, invalid, or incomplete"
         if (document["outcome"]?.jsonPrimitive?.content !in setOf("passed", "failed", "invalid")) errors += "outcome must be passed, failed, or invalid"
+        val environment = document["environment"] as? JsonObject
+        if (environment == null || setOf("platform", "runtime", "seed").any { it !in environment }) {
+            errors += "environment must declare platform, runtime, and seed"
+        }
+        val resources = document["resources"] as? JsonObject
+        if (resources == null || setOf("tokens", "money_usd", "wall_time_seconds", "compute", "memory_mb").any { it !in resources }) {
+            errors += "resources must declare tokens, money_usd, wall_time_seconds, compute, and memory_mb"
+        }
         if (document["evidence"] !is JsonArray || document["evidence"]!!.jsonArray.isEmpty()) errors += "evidence must be a non-empty list"
         return errors
     }
@@ -116,7 +124,7 @@ object EvaluationPipeline {
             putJsonObject("benchmark") { put("id", manifest["id"]!!.jsonPrimitive.content); put("version", manifest["version"]!!.jsonPrimitive.content) }
             putJsonObject("system") { put("name", systemName); put("version", systemVersion); put("configuration", configuration) }
             put("reproducibility_tier", tier)
-            putJsonObject("environment") { put("runtime", "Kotlin/JVM ${System.getProperty("java.version")}"); put("seed", manifest["execution"]!!.jsonObject["seed"]!!.jsonPrimitive.int) }
+            putJsonObject("environment") { put("platform", "${System.getProperty("os.name")} ${System.getProperty("os.arch")}"); put("runtime", "Kotlin/JVM ${System.getProperty("java.version")}"); put("seed", manifest["execution"]!!.jsonObject["seed"]!!.jsonPrimitive.int) }
             putJsonObject("resources") { put("tokens", 0); put("money_usd", 0.0); put("wall_time_seconds", elapsedNanos / 1_000_000_000.0); put("compute", System.getProperty("os.arch")); put("memory_mb", Runtime.getRuntime().totalMemory() / (1024.0 * 1024.0)) }
             putJsonObject("metrics") { put("exact_match_rate", rate) }
             putJsonArray("evidence") { add(buildJsonObject { put("path", "evidence.jsonl"); put("sha256", evidenceHash); put("records", records.size) }) }

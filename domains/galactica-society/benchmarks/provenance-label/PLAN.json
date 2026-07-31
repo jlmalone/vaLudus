@@ -1,0 +1,44 @@
+{
+  "schema_version": "0.1",
+  "id": "synthetic-provenance-label-counterfactual",
+  "version": "0.1.0",
+  "question": "Does a provenance label reduce adoption of a high-arousal false claim during an income shock while retaining neutral information reach?",
+  "scope": "Synthetic mechanism study only. Coefficients are hypotheses, not estimates of real people or forecasts of real policy outcomes.",
+  "world": {
+    "population": 200,
+    "days": 60,
+    "replications": 200,
+    "seed": 8128
+  },
+  "campaign": {
+    "start_day": 8,
+    "correction_start_day": 24,
+    "base_false_reach": 0.24,
+    "correction_reach": 0.12,
+    "arousal": 0.85
+  },
+  "economy": {
+    "shock_start_day": 12,
+    "shock_end_day": 32,
+    "shock_income_multiplier": 0.58,
+    "essential_daily_cost": 76.0,
+    "financial_buffer": 700.0
+  },
+  "policies": {
+    "baseline": {
+      "id": "no-label",
+      "provenance_label_effectiveness": 0.0,
+      "sharing_friction": 0.0
+    },
+    "intervention": {
+      "id": "provenance-label",
+      "provenance_label_effectiveness": 0.70,
+      "sharing_friction": 0.04
+    }
+  },
+  "success_criteria": {
+    "minimum_final_false_belief_score_reduction": 0.08,
+    "minimum_low_resource_false_belief_score_reduction": 0.05,
+    "minimum_neutral_reach_retention": 0.93
+  }
+}

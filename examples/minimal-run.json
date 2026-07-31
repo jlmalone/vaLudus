@@ -4,7 +4,7 @@
   "benchmark": {"id": "structured-reasoning-smoke", "version": "0.1.0"},
   "system": {"name": "reference-system", "version": "0.1.0", "configuration": "Deterministic reference configuration."},
   "reproducibility_tier": "exact",
-  "environment": {"platform": "documented local environment", "python": "documented interpreter", "seed": 7},
+  "environment": {"platform": "documented local environment", "runtime": "documented Kotlin/JVM runtime", "seed": 7},
   "resources": {"tokens": null, "money_usd": 0.0, "wall_time_seconds": 3.2, "compute": "single CPU process", "memory_mb": 24.0},
   "metrics": {"valid_answer_rate": 1.0},
   "evidence": [{"path": "evidence.jsonl", "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "records": 0}],

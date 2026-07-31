@@ -29,7 +29,27 @@ The following choices need owner direction before implementation because they ch
 - whether that benchmark uses a public, private, or refreshable held-out fixture set;
 - which external systems, if any, may be evaluated and how their cost and configuration evidence will be captured;
 - the isolation policy for adapters that are not trusted local code.
-- the simulator's initial economic rules, agents, and safety-relevant outcomes before building the
-  Galactica-linked society simulation.
 
-Until those decisions are made, contributions should improve the existing artifact contracts, reference runner, evidence inspection, or the documented benchmark-authoring process.
+Until those decisions are made, contributions should improve the existing artifact contracts,
+reference runner, evidence inspection, documented benchmark-authoring process, or the bounded
+society experiment below.
+
+## Society policy laboratory
+
+The first owner-directed slice now fixes one synthetic question: whether provenance labels reduce
+a false-information campaign during an income shock without excessive loss of neutral reach. Its
+paired runner and evidence ledger are foundation work, not an endorsement of its behavioral model.
+
+Move this work forward in the following order:
+
+1. Sweep every behavioral coefficient and publish sensitivity surfaces, including failed and
+   sign-reversing results.
+2. Implement at least one competing belief-update model so conclusions cannot depend silently on
+   one equation.
+3. Define empirical calibration targets for activity time, resource stress, exposure, and sharing,
+   with documented provenance and acceptable error bands.
+4. Add an isolated policy-agent interface whose powers are a small declared action set. Compare it
+   with fixed baselines on held-out shocks.
+5. Add supply, labour, and institution modules only when each brings an independently testable
+   accounting identity or outcome claim. A separate economic-model project is justified once those
+   modules need calibration against national accounts, household panels, or market data.
