@@ -1,0 +1,53 @@
+{
+  "schema_version": "0.1",
+  "id": "synthetic-provenance-label-sensitivity",
+  "version": "0.1.0",
+  "question": "Does the modeled provenance-label benefit survive changes to every declared behavioral coefficient and a competing belief-update model?",
+  "scope": "One-factor-at-a-time synthetic robustness study. It does not validate either behavioral model against real people.",
+  "base_plan": "PLAN.json",
+  "world": {
+    "population": 64,
+    "days": 60,
+    "replications": 8
+  },
+  "models": [
+    "linear-persuasion",
+    "evidence-accumulation"
+  ],
+  "axes": [
+    {"path": "campaign.base_false_reach", "low": 0.18, "high": 0.30},
+    {"path": "campaign.correction_reach", "low": 0.08, "high": 0.18},
+    {"path": "campaign.arousal", "low": 0.65, "high": 1.00},
+    {"path": "economy.shock_income_multiplier", "low": 0.40, "high": 0.80},
+    {"path": "economy.essential_daily_cost", "low": 60.0, "high": 95.0},
+    {"path": "economy.financial_buffer", "low": 400.0, "high": 1100.0},
+    {"path": "policies.intervention.provenance_label_effectiveness", "low": 0.45, "high": 0.90},
+    {"path": "policies.intervention.sharing_friction", "low": 0.01, "high": 0.10},
+    {"path": "behavior.neutral_reach", "low": 0.50, "high": 0.90},
+    {"path": "behavior.maximum_exposure_probability", "low": 0.80, "high": 1.00},
+    {"path": "behavior.neighbor_reach_weight", "low": 0.20, "high": 0.50},
+    {"path": "behavior.interest_reach_weight", "low": 0.05, "high": 0.30},
+    {"path": "behavior.media_base_minutes", "low": 20.0, "high": 60.0},
+    {"path": "behavior.media_interest_minutes", "low": 50.0, "high": 120.0},
+    {"path": "behavior.media_stress_minutes", "low": 10.0, "high": 60.0},
+    {"path": "behavior.media_exposure_reference_minutes", "low": 80.0, "high": 180.0},
+    {"path": "behavior.media_exposure_weight", "low": 0.20, "high": 0.80},
+    {"path": "behavior.label_literacy_weight", "low": 0.30, "high": 0.90},
+    {"path": "behavior.persuasion_base", "low": 0.04, "high": 0.14},
+    {"path": "behavior.persuasion_susceptibility_weight", "low": 0.12, "high": 0.38},
+    {"path": "behavior.persuasion_stress_weight", "low": 0.03, "high": 0.20},
+    {"path": "behavior.correction_base", "low": 0.02, "high": 0.12},
+    {"path": "behavior.correction_literacy_weight", "low": 0.10, "high": 0.35},
+    {"path": "behavior.correction_trust_weight", "low": 0.20, "high": 0.80},
+    {"path": "behavior.social_update_rate", "low": 0.03, "high": 0.16},
+    {"path": "behavior.adoption_threshold", "low": 0.35, "high": 0.65},
+    {"path": "behavior.evidence_false_scale", "low": 2.0, "high": 7.0},
+    {"path": "behavior.evidence_correction_scale", "low": 2.0, "high": 7.0},
+    {"path": "behavior.evidence_social_scale", "low": 1.0, "high": 4.0}
+  ],
+  "success_criteria": {
+    "require_baseline_pass_all_models": true,
+    "minimum_configuration_pass_rate": 0.60,
+    "maximum_sign_reversals": 0
+  }
+}

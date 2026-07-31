@@ -10,9 +10,10 @@ import org.valudus.core.UciEngine
 import org.valudus.gambit.DifficultyCalibration
 import org.valudus.governance.main as governanceMain
 import org.valudus.society.SocietySimulation
+import org.valudus.society.SocietySensitivity
 
 fun main(arguments: Array<String>) {
-    require(arguments.isNotEmpty()) { "usage: validate-benchmark PATH | validate-run PATH | run-reference ... | probe-engine ... | schedule-difficulty ... | summarize-difficulty ... | generate ... | simulate-society ..." }
+    require(arguments.isNotEmpty()) { "usage: validate-benchmark PATH | validate-run PATH | run-reference ... | probe-engine ... | schedule-difficulty ... | summarize-difficulty ... | generate ... | simulate-society ... | sweep-society ..." }
     if (arguments[0] == "generate") return governanceMain(arguments)
     when (arguments[0]) {
         "validate-benchmark", "validate-run" -> {
@@ -46,6 +47,12 @@ fun main(arguments: Array<String>) {
             val options = arguments.drop(1).chunked(2).associate { require(it.size == 2) { "missing option value" }; it[0] to it[1] }
             val output = Path(required(options, "--output"))
             val report = SocietySimulation.run(Path(required(options, "--plan")), output)
+            println("${report["status"]!!.jsonPrimitive.content}: ${report["outcome"]!!.jsonPrimitive.content} $output/run-report.json")
+        }
+        "sweep-society" -> {
+            val options = arguments.drop(1).chunked(2).associate { require(it.size == 2) { "missing option value" }; it[0] to it[1] }
+            val output = Path(required(options, "--output"))
+            val report = SocietySensitivity.run(Path(required(options, "--plan")), output)
             println("${report["status"]!!.jsonPrimitive.content}: ${report["outcome"]!!.jsonPrimitive.content} $output/run-report.json")
         }
         else -> error("unknown command: ${arguments[0]}")

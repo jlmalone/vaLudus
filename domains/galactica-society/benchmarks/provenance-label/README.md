@@ -27,5 +27,26 @@ The output directory contains:
 
 The kernel does not establish that the behavioral coefficients are realistic. A passing result
 means only that the intervention meets the declared thresholds inside this versioned synthetic
-world. The next scientific steps are sensitivity sweeps, alternative behavioral models, empirical
-calibration targets, and preregistered held-out scenarios.
+world. The companion study below tests sensitivity and an alternative behavioral model. Further
+scientific steps require empirical calibration targets and preregistered held-out scenarios.
+
+## Sensitivity and competing models
+
+The companion sweep varies every declared behavioral coefficient plus selected campaign, policy,
+and economic assumptions one at a time at a low and high bound. It repeats the experiment using
+both `linear-persuasion` and `evidence-accumulation` belief dynamics.
+
+```sh
+gradle run --args="sweep-society \
+  --plan domains/galactica-society/benchmarks/provenance-label/SENSITIVITY.json \
+  --output /tmp/valudus-provenance-sensitivity"
+```
+
+The declared sweep contains 118 configurations and 944 paired worlds. Each configuration keeps a
+full child evidence directory. The top-level `configurations.jsonl` links to each child report and
+records a digest of its raw evidence hashes. `axis-summaries.jsonl` places each low and high effect
+beside its model baseline. The aggregate `run-report.json` records pass rate, sign reversals,
+cross-model disagreement, fragile axes, and the observed effect range.
+
+One-factor-at-a-time analysis does not expose interactions between coefficients. Its job is to
+find obvious fragility cheaply before global sampling, factorial designs, or empirical calibration.

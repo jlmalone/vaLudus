@@ -9,6 +9,8 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.math.exp
+import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -31,11 +33,37 @@ data class SocietyPolicy(
     val sharingFriction: Double,
 )
 
+data class SocietyBehavior(
+    val neutralReach: Double = 0.70,
+    val maximumExposureProbability: Double = 0.95,
+    val neighborReachWeight: Double = 0.35,
+    val interestReachWeight: Double = 0.15,
+    val mediaBaseMinutes: Double = 35.0,
+    val mediaInterestMinutes: Double = 85.0,
+    val mediaStressMinutes: Double = 30.0,
+    val mediaExposureReferenceMinutes: Double = 120.0,
+    val mediaExposureWeight: Double = 0.50,
+    val labelLiteracyWeight: Double = 0.65,
+    val persuasionBase: Double = 0.08,
+    val persuasionSusceptibilityWeight: Double = 0.24,
+    val persuasionStressWeight: Double = 0.10,
+    val correctionBase: Double = 0.06,
+    val correctionLiteracyWeight: Double = 0.20,
+    val correctionTrustWeight: Double = 0.50,
+    val socialUpdateRate: Double = 0.08,
+    val adoptionThreshold: Double = 0.50,
+    val evidenceFalseScale: Double = 4.0,
+    val evidenceCorrectionScale: Double = 4.0,
+    val evidenceSocialScale: Double = 2.0,
+)
+
 data class SocietyExperimentPlan(
     val id: String,
     val version: String,
     val question: String,
     val scope: String,
+    val beliefModel: String,
+    val behavior: SocietyBehavior,
     val population: Int,
     val days: Int,
     val replications: Int,
@@ -62,7 +90,7 @@ data class SocietyExperimentPlan(
  * world, not estimates of real people or forecasts of real policy outcomes.
  */
 object SocietySimulation {
-    private const val kernelVersion = "0.1.0"
+    const val KERNEL_VERSION = "0.2.0"
     private val prettyJson = Json { prettyPrint = true }
     private val compactJson = Json
 
@@ -74,11 +102,14 @@ object SocietySimulation {
         val economy = root.requiredObject("economy")
         val policies = root.requiredObject("policies")
         val success = root.requiredObject("success_criteria")
+        val behavior = root["behavior"]?.jsonObject?.toBehavior() ?: SocietyBehavior()
         return SocietyExperimentPlan(
             id = root.requiredString("id"),
             version = root.requiredString("version"),
             question = root.requiredString("question"),
             scope = root.requiredString("scope"),
+            beliefModel = root["belief_model"]?.jsonPrimitive?.content ?: "linear-persuasion",
+            behavior = behavior,
             population = world.requiredInt("population"),
             days = world.requiredInt("days"),
             replications = world.requiredInt("replications"),
@@ -121,8 +152,8 @@ object SocietySimulation {
                             val intervention = simulate(plan, plan.intervention, replication)
                             baseline.daily.forEach { dailyWriter.writeLine(it.toJson(replication, plan.baseline.id)) }
                             intervention.daily.forEach { dailyWriter.writeLine(it.toJson(replication, plan.intervention.id)) }
-                            baseline.agents.forEach { agentWriter.writeLine(it.toJson(replication, plan.baseline.id)) }
-                            intervention.agents.forEach { agentWriter.writeLine(it.toJson(replication, plan.intervention.id)) }
+                            baseline.agents.forEach { agentWriter.writeLine(it.toJson(replication, plan.baseline.id, plan.behavior.adoptionThreshold)) }
+                            intervention.agents.forEach { agentWriter.writeLine(it.toJson(replication, plan.intervention.id, plan.behavior.adoptionThreshold)) }
                             PairedSummary(replication, baseline.summary, intervention.summary).also {
                                 summaries += it
                                 replicationWriter.writeLine(it.toJson())
@@ -157,8 +188,8 @@ object SocietySimulation {
             putJsonObject("benchmark") { put("id", plan.id); put("version", plan.version) }
             putJsonObject("system") {
                 put("name", "valudus-society-reference")
-                put("version", kernelVersion)
-                put("configuration", "paired ${plan.baseline.id} versus ${plan.intervention.id}; synthetic coefficients declared by kernel $kernelVersion")
+                put("version", KERNEL_VERSION)
+                put("configuration", "${plan.beliefModel}; paired ${plan.baseline.id} versus ${plan.intervention.id}; synthetic coefficients declared by kernel $KERNEL_VERSION")
             }
             put("reproducibility_tier", "exact")
             putJsonObject("environment") {
@@ -234,7 +265,11 @@ object SocietySimulation {
                     unmetEssentials / plan.essentialDailyCost,
                 ).coerceIn(0.0, 1.0)
                 if (financialStress >= 0.5) stressedAgents += 1
-                val mediaToday = (35.0 + agent.interest * 85.0 + financialStress * 30.0).toInt()
+                val mediaToday = (
+                    plan.behavior.mediaBaseMinutes +
+                        agent.interest * plan.behavior.mediaInterestMinutes +
+                        financialStress * plan.behavior.mediaStressMinutes
+                    ).toInt()
                 val leisureToday = (1440 - 480 - 180 - workToday - mediaToday).coerceAtLeast(0)
                 agent.workMinutes += workToday
                 agent.mediaMinutes += mediaToday
@@ -246,45 +281,57 @@ object SocietySimulation {
                 val left = previousBeliefs[(index - 1 + agents.size) % agents.size]
                 val right = previousBeliefs[(index + 1) % agents.size]
                 val neighborBelief = (left + right) / 2.0
+                val mediaExposureFactor = (
+                    (1.0 - plan.behavior.mediaExposureWeight) +
+                        plan.behavior.mediaExposureWeight * mediaToday / plan.behavior.mediaExposureReferenceMinutes
+                    ).coerceIn(0.0, 2.0)
                 val falseProbability = if (day >= plan.campaignStartDay) {
-                    (plan.baseFalseReach + 0.35 * neighborBelief + 0.15 * agent.interest) * (1.0 - policy.sharingFriction)
+                    (
+                        plan.baseFalseReach +
+                            plan.behavior.neighborReachWeight * neighborBelief +
+                            plan.behavior.interestReachWeight * agent.interest
+                        ) * mediaExposureFactor * (1.0 - policy.sharingFriction)
                 } else 0.0
                 val correctionProbability = if (day >= plan.correctionStartDay) {
-                    plan.correctionReach * (0.5 + 0.5 * agent.institutionalTrust) * (1.0 - policy.sharingFriction)
+                    plan.correctionReach * trustFactor(agent.institutionalTrust, plan.behavior.correctionTrustWeight) *
+                        mediaExposureFactor * (1.0 - policy.sharingFriction)
                 } else 0.0
-                val neutralProbability = 0.70 * (1.0 - policy.sharingFriction)
-                val falseExposure = eventRandom.nextDouble() < falseProbability.coerceIn(0.0, 0.95)
-                val correctionExposure = eventRandom.nextDouble() < correctionProbability.coerceIn(0.0, 0.95)
-                val neutralExposure = eventRandom.nextDouble() < neutralProbability.coerceIn(0.0, 0.95)
+                val neutralProbability = plan.behavior.neutralReach * mediaExposureFactor * (1.0 - policy.sharingFriction)
+                val falseExposure = eventRandom.nextDouble() < falseProbability.coerceIn(0.0, plan.behavior.maximumExposureProbability)
+                val correctionExposure = eventRandom.nextDouble() < correctionProbability.coerceIn(0.0, plan.behavior.maximumExposureProbability)
+                val neutralExposure = eventRandom.nextDouble() < neutralProbability.coerceIn(0.0, plan.behavior.maximumExposureProbability)
                 val reshareDraw = eventRandom.nextDouble()
 
                 if (falseExposure) {
                     falseExposures += 1
                     agent.falseExposures += 1
-                    val labelResistance = policy.provenanceLabelEffectiveness * (0.35 + 0.65 * agent.mediaLiteracy)
-                    val persuasion = (0.08 + 0.24 * agent.susceptibility + 0.10 * financialStress) *
-                        plan.campaignArousal * (1.0 - labelResistance)
-                    agent.falseBelief += (1.0 - agent.falseBelief) * persuasion
                 }
                 if (correctionExposure) {
                     correctionExposures += 1
                     agent.correctionExposures += 1
-                    val correctionEffect = (0.06 + 0.20 * agent.mediaLiteracy) * (0.5 + 0.5 * agent.institutionalTrust)
-                    agent.falseBelief -= agent.falseBelief * correctionEffect
                 }
                 if (neutralExposure) {
                     neutralExposures += 1
                     agent.neutralExposures += 1
                 }
-                agent.falseBelief += (neighborBelief - agent.falseBelief) * agent.socialConformity * 0.08
-                agent.falseBelief = agent.falseBelief.coerceIn(0.0, 1.0)
+                agent.falseBelief = updateBelief(
+                    model = plan.beliefModel,
+                    behavior = plan.behavior,
+                    policy = policy,
+                    agent = agent,
+                    neighborBelief = neighborBelief,
+                    financialStress = financialStress,
+                    arousal = plan.campaignArousal,
+                    falseExposure = falseExposure,
+                    correctionExposure = correctionExposure,
+                )
                 if (falseExposure && reshareDraw < agent.falseBelief * plan.campaignArousal * (1.0 - policy.sharingFriction)) {
                     falseReshares += 1
                     agent.falseReshares += 1
                 }
             }
 
-            val prevalence = agents.count { it.falseBelief >= 0.5 }.toDouble() / agents.size
+            val prevalence = agents.count { it.falseBelief >= plan.behavior.adoptionThreshold }.toDouble() / agents.size
             peakFalseBeliefPrevalence = maxOf(peakFalseBeliefPrevalence, prevalence)
             totalNeutralExposures += neutralExposures
             totalFalseReshares += falseReshares
@@ -311,21 +358,67 @@ object SocietySimulation {
             agents = agents,
             summary = ScenarioSummary(
                 finalMeanFalseBelief = agents.map { it.falseBelief }.average(),
-                finalFalseBeliefPrevalence = agents.count { it.falseBelief >= 0.5 }.toDouble() / agents.size,
+                finalFalseBeliefPrevalence = agents.count { it.falseBelief >= plan.behavior.adoptionThreshold }.toDouble() / agents.size,
                 peakFalseBeliefPrevalence = peakFalseBeliefPrevalence,
                 lowResourceFinalMeanFalseBelief = lowResourceAgents.map { it.falseBelief }.average(),
-                lowResourceFinalFalseBeliefPrevalence = lowResourceAgents.count { it.falseBelief >= 0.5 }.toDouble() / lowResourceAgents.size,
+                lowResourceFinalFalseBeliefPrevalence = lowResourceAgents.count { it.falseBelief >= plan.behavior.adoptionThreshold }.toDouble() / lowResourceAgents.size,
                 neutralExposures = totalNeutralExposures,
                 falseReshares = totalFalseReshares,
             ),
         )
     }
 
+    private fun updateBelief(
+        model: String,
+        behavior: SocietyBehavior,
+        policy: SocietyPolicy,
+        agent: AgentState,
+        neighborBelief: Double,
+        financialStress: Double,
+        arousal: Double,
+        falseExposure: Boolean,
+        correctionExposure: Boolean,
+    ): Double {
+        val labelResistance = policy.provenanceLabelEffectiveness * (
+            (1.0 - behavior.labelLiteracyWeight) + behavior.labelLiteracyWeight * agent.mediaLiteracy
+            )
+        val falseEffect = (
+            behavior.persuasionBase +
+                behavior.persuasionSusceptibilityWeight * agent.susceptibility +
+                behavior.persuasionStressWeight * financialStress
+            ) * arousal * (1.0 - labelResistance.coerceIn(0.0, 1.0))
+        val correctionEffect = (
+            behavior.correctionBase + behavior.correctionLiteracyWeight * agent.mediaLiteracy
+            ) * trustFactor(agent.institutionalTrust, behavior.correctionTrustWeight)
+        return when (model) {
+            "linear-persuasion" -> {
+                var belief = agent.falseBelief
+                if (falseExposure) belief += (1.0 - belief) * falseEffect
+                if (correctionExposure) belief -= belief * correctionEffect
+                belief += (neighborBelief - belief) * agent.socialConformity * behavior.socialUpdateRate
+                belief.coerceIn(0.0, 1.0)
+            }
+            "evidence-accumulation" -> {
+                val boundedBelief = agent.falseBelief.coerceIn(0.000_001, 0.999_999)
+                var logOdds = ln(boundedBelief / (1.0 - boundedBelief))
+                if (falseExposure) logOdds += falseEffect * behavior.evidenceFalseScale
+                if (correctionExposure) logOdds -= correctionEffect * behavior.evidenceCorrectionScale
+                logOdds += (neighborBelief - agent.falseBelief) * agent.socialConformity *
+                    behavior.socialUpdateRate * behavior.evidenceSocialScale
+                (1.0 / (1.0 + exp(-logOdds))).coerceIn(0.0, 1.0)
+            }
+            else -> error("unknown belief model: $model")
+        }
+    }
+
+    private fun trustFactor(trust: Double, weight: Double) = (1.0 - weight) + weight * trust
+
     private fun validate(plan: SocietyExperimentPlan) {
         require(plan.population >= 8) { "world.population must be at least 8" }
         require(plan.id.matches(Regex("[a-z0-9][a-z0-9._-]*"))) { "plan id must be lowercase and path-safe" }
         require(plan.version.matches(Regex("[a-z0-9][a-z0-9._-]*"))) { "plan version must be lowercase and path-safe" }
         require(plan.question.isNotBlank() && plan.scope.isNotBlank()) { "question and scope must not be blank" }
+        require(plan.beliefModel in setOf("linear-persuasion", "evidence-accumulation")) { "belief_model must be linear-persuasion or evidence-accumulation" }
         require(plan.days >= 2) { "world.days must be at least 2" }
         require(plan.replications >= 1) { "world.replications must be at least 1" }
         require(plan.campaignStartDay in 1..plan.days) { "campaign.start_day must fall within the simulation" }
@@ -339,6 +432,33 @@ object SocietySimulation {
         requireProbability("success_criteria.minimum_final_false_belief_score_reduction", plan.minimumFalseBeliefScoreReduction)
         requireProbability("success_criteria.minimum_low_resource_false_belief_score_reduction", plan.minimumLowResourceScoreReduction)
         requireProbability("success_criteria.minimum_neutral_reach_retention", plan.minimumNeutralReachRetention)
+        with(plan.behavior) {
+            mapOf(
+                "neutral_reach" to neutralReach,
+                "maximum_exposure_probability" to maximumExposureProbability,
+                "neighbor_reach_weight" to neighborReachWeight,
+                "interest_reach_weight" to interestReachWeight,
+                "media_exposure_weight" to mediaExposureWeight,
+                "label_literacy_weight" to labelLiteracyWeight,
+                "persuasion_base" to persuasionBase,
+                "persuasion_susceptibility_weight" to persuasionSusceptibilityWeight,
+                "persuasion_stress_weight" to persuasionStressWeight,
+                "correction_base" to correctionBase,
+                "correction_literacy_weight" to correctionLiteracyWeight,
+                "correction_trust_weight" to correctionTrustWeight,
+                "social_update_rate" to socialUpdateRate,
+                "adoption_threshold" to adoptionThreshold,
+            ).forEach { (name, value) -> requireProbability("behavior.$name", value) }
+            mapOf(
+                "media_base_minutes" to mediaBaseMinutes,
+                "media_interest_minutes" to mediaInterestMinutes,
+                "media_stress_minutes" to mediaStressMinutes,
+                "media_exposure_reference_minutes" to mediaExposureReferenceMinutes,
+                "evidence_false_scale" to evidenceFalseScale,
+                "evidence_correction_scale" to evidenceCorrectionScale,
+                "evidence_social_scale" to evidenceSocialScale,
+            ).forEach { (name, value) -> require(value > 0.0) { "behavior.$name must be positive" } }
+        }
         listOf(plan.baseline, plan.intervention).forEach { policy ->
             require(policy.id.matches(Regex("[a-z0-9][a-z0-9._-]*"))) { "policy id must be lowercase and path-safe: ${policy.id}" }
             requireProbability("${policy.id}.provenance_label_effectiveness", policy.provenanceLabelEffectiveness)
@@ -349,6 +469,29 @@ object SocietySimulation {
 
     private fun requireProbability(name: String, value: Double) = require(value in 0.0..1.0) { "$name must be between 0 and 1" }
     private fun JsonObject.toPolicy() = SocietyPolicy(requiredString("id"), requiredDouble("provenance_label_effectiveness"), requiredDouble("sharing_friction"))
+    private fun JsonObject.toBehavior() = SocietyBehavior(
+        neutralReach = requiredDouble("neutral_reach"),
+        maximumExposureProbability = requiredDouble("maximum_exposure_probability"),
+        neighborReachWeight = requiredDouble("neighbor_reach_weight"),
+        interestReachWeight = requiredDouble("interest_reach_weight"),
+        mediaBaseMinutes = requiredDouble("media_base_minutes"),
+        mediaInterestMinutes = requiredDouble("media_interest_minutes"),
+        mediaStressMinutes = requiredDouble("media_stress_minutes"),
+        mediaExposureReferenceMinutes = requiredDouble("media_exposure_reference_minutes"),
+        mediaExposureWeight = requiredDouble("media_exposure_weight"),
+        labelLiteracyWeight = requiredDouble("label_literacy_weight"),
+        persuasionBase = requiredDouble("persuasion_base"),
+        persuasionSusceptibilityWeight = requiredDouble("persuasion_susceptibility_weight"),
+        persuasionStressWeight = requiredDouble("persuasion_stress_weight"),
+        correctionBase = requiredDouble("correction_base"),
+        correctionLiteracyWeight = requiredDouble("correction_literacy_weight"),
+        correctionTrustWeight = requiredDouble("correction_trust_weight"),
+        socialUpdateRate = requiredDouble("social_update_rate"),
+        adoptionThreshold = requiredDouble("adoption_threshold"),
+        evidenceFalseScale = requiredDouble("evidence_false_scale"),
+        evidenceCorrectionScale = requiredDouble("evidence_correction_scale"),
+        evidenceSocialScale = requiredDouble("evidence_social_scale"),
+    )
     private fun JsonObject.requiredObject(name: String) = getValue(name).jsonObject
     private fun JsonObject.requiredString(name: String) = getValue(name).jsonPrimitive.content
     private fun JsonObject.requiredInt(name: String) = getValue(name).jsonPrimitive.int
@@ -448,12 +591,12 @@ object SocietySimulation {
         var neutralExposures: Int = 0,
         var falseReshares: Int = 0,
     ) {
-        fun toJson(replication: Int, policy: String) = buildJsonObject {
+        fun toJson(replication: Int, policy: String, adoptionThreshold: Double) = buildJsonObject {
             put("replication", replication); put("policy", policy); put("agent_id", id); put("low_resource", lowResource)
             put("employed", employed); put("daily_income", dailyIncome); put("initial_savings", initialSavings); put("final_savings", savings); put("unmet_essentials", unmetEssentials)
             put("interest", interest); put("media_literacy", mediaLiteracy); put("susceptibility", susceptibility)
             put("institutional_trust", institutionalTrust); put("social_conformity", socialConformity)
-            put("final_false_belief", falseBelief); put("false_belief_adopted", falseBelief >= 0.5)
+            put("final_false_belief", falseBelief); put("false_belief_adopted", falseBelief >= adoptionThreshold)
             put("false_exposures", falseExposures); put("correction_exposures", correctionExposures)
             put("neutral_exposures", neutralExposures); put("false_reshares", falseReshares)
             put("work_minutes", workMinutes); put("media_minutes", mediaMinutes); put("leisure_minutes", leisureMinutes)

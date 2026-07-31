@@ -40,16 +40,14 @@ The first owner-directed slice now fixes one synthetic question: whether provena
 a false-information campaign during an income shock without excessive loss of neutral reach. Its
 paired runner and evidence ledger are foundation work, not an endorsement of its behavioral model.
 
-Move this work forward in the following order:
+The first one-factor sweep and competing belief model are now executable. Move the work forward in
+the following order:
 
-1. Sweep every behavioral coefficient and publish sensitivity surfaces, including failed and
-   sign-reversing results.
-2. Implement at least one competing belief-update model so conclusions cannot depend silently on
-   one equation.
-3. Define empirical calibration targets for activity time, resource stress, exposure, and sharing,
+1. Add interaction testing and global sensitivity sampling after inspecting the one-factor results.
+2. Define empirical calibration targets for activity time, resource stress, exposure, and sharing,
    with documented provenance and acceptable error bands.
-4. Add an isolated policy-agent interface whose powers are a small declared action set. Compare it
+3. Add an isolated policy-agent interface whose powers are a small declared action set. Compare it
    with fixed baselines on held-out shocks.
-5. Add supply, labour, and institution modules only when each brings an independently testable
+4. Add supply, labour, and institution modules only when each brings an independently testable
    accounting identity or outcome claim. A separate economic-model project is justified once those
    modules need calibration against national accounts, household panels, or market data.

@@ -144,3 +144,11 @@ gradle run --args="simulate-society \
 This is an experiment inside a declared synthetic model, not a prediction about real people. See
 the [experiment contract](domains/galactica-society/benchmarks/provenance-label/README.md) and
 [society domain](domains/galactica-society/README.md).
+
+Run its one-factor sensitivity study across both belief models:
+
+```sh
+gradle run --args="sweep-society \
+  --plan domains/galactica-society/benchmarks/provenance-label/SENSITIVITY.json \
+  --output /tmp/valudus-provenance-sensitivity"
+```
