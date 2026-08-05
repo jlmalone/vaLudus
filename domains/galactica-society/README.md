@@ -16,6 +16,8 @@ daily activity totals, a simple household resource state, information exposure, 
 and a fixed governance intervention. It is intentionally narrower than a society model: its
 current value is the paired experiment and evidence machinery, not behavioral realism.
 
+The next bounded slice is the [static society evidence dashboard](DASHBOARD_PLAN.md).
+
 See [pipeline](pipeline/README.md), [generator](generator/README.md), and
 [benchmarks](benchmarks/README.md). The
 [society simulation landscape](../../docs/SOCIETY_SIMULATION_LANDSCAPE.md) records related

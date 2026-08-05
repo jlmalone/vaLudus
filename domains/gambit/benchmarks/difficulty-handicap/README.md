@@ -23,3 +23,5 @@ gradle run --args="summarize-difficulty \
 ```
 
 The sample is intentionally too small to tune. It proves the artifact path without pretending that four games establish a strength result. For an actual run, use the generated paired schedule, stop each game at 160 plies, and preserve the schedule and raw JSONL alongside its summary.
+
+The first bounded engine slice is specified in the [minimal Turnabout executor plan](EXECUTOR_PLAN.md).
